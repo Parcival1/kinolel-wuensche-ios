@@ -1,0 +1,75 @@
+# KinoLel Wünsche – iPhone-App. XcodeGen-Projekt (`xcodegen generate`).
+# Marke: EINZIGE Stelle für Name, Server, Kennung und Version ist "settings.base".
+name: KinoLelWuensche
+options:
+  bundleIdPrefix: de.kinolel
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    KINOLEL_APP_NAME: "KinoLel Wünsche"
+    KINOLEL_SERVER_DE: https://wuensche.kinolel.de
+    KINOLEL_SERVER_HU: https://kivansagok.kinolel.de
+    PRODUCT_BUNDLE_IDENTIFIER: de.kinolel.wuensche
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+targets:
+  KinoLelWuensche:
+    type: application
+    platform: iOS
+    sources:
+      - path: KinoLelWuensche
+    info:
+      path: KinoLelWuensche/Info.plist
+      properties:
+        CFBundleDisplayName: $(KINOLEL_APP_NAME)
+        CFBundleName: KinoLelWuensche
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: de
+        CFBundleLocalizations: [de, hu]
+        KinoLelServerDE: $(KINOLEL_SERVER_DE)
+        KinoLelServerHU: $(KINOLEL_SERVER_HU)
+        KinoLelAppName: $(KINOLEL_APP_NAME)
+        LSRequiresIPhoneOS: true
+        ITSAppUsesNonExemptEncryption: false
+        # Ersatz für Universal Links (die bräuchten ein Apple-Entwicklerkonto):
+        # kinolelwuensche://wuensche.kinolel.de/... öffnet die App mit dieser Seite
+        CFBundleURLTypes:
+          - CFBundleURLName: de.kinolel.wuensche
+            CFBundleURLSchemes: [kinolelwuensche]
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen:
+          UIColorName: Startgrund
+          UIImageName: StartLogo
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UIViewControllerBasedStatusBarAppearance: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        INFOPLIST_FILE: KinoLelWuensche/Info.plist
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+schemes:
+  KinoLelWuensche:
+    build:
+      targets:
+        KinoLelWuensche: all
+    run:
+      config: Debug
+    archive:
+      config: Release
