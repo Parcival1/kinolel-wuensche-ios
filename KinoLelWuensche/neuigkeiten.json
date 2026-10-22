@@ -1,6 +1,18 @@
 {
   "versionen": [
     {
+      "version": "0.1.2",
+      "de": [
+        "Updates kommen jetzt über SideStore: „Aktualisieren“ öffnet SideStore, dort bei der App auf „Update“ tippen."
+      ],
+      "hu": [
+        "A frissítések mostantól a SideStore-on keresztül érkeznek: a „Frissítés” megnyitja a SideStore-t, ott koppints az app melletti „Update” gombra."
+      ],
+      "en": [
+        "Updates now come through SideStore: “Update” opens SideStore, then tap “Update” next to the app."
+      ]
+    },
+    {
       "version": "0.1.1",
       "de": [
         "Nach jedem Update zeigt die App jetzt einmal kurz, was neu ist – so wie hier – und sagt Bescheid, wenn es eine neue Version gibt.",

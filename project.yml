@@ -12,7 +12,7 @@ settings:
     KINOLEL_SERVER_DE: https://wuensche.kinolel.de
     KINOLEL_SERVER_HU: https://kivansagok.kinolel.de
     PRODUCT_BUNDLE_IDENTIFIER: de.kinolel.wuensche
-    MARKETING_VERSION: "0.1.1"
+    MARKETING_VERSION: "0.1.2"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"

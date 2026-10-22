@@ -206,7 +206,8 @@ final class NeuigkeitenViewController: UIViewController {
     }
 }
 
-/// Hinweis auf eine neue Version (GitHub-Releases, höchstens alle 6 Stunden). Installiert wird wie beim ersten Mal.
+/// Hinweis auf eine neue Version (GitHub-Releases, höchstens alle 6 Stunden). Installiert wird über SideStore
+/// (Quelle https://kinolel.de/web/kinolel/sidestore.json) – „Aktualisieren“ öffnet SideStore.
 enum Aktualisierung {
     private static let repo = "Parcival1/kinolel-wuensche-ios"
     private static let abstand: TimeInterval = 6 * 60 * 60
@@ -242,17 +243,25 @@ enum Aktualisierung {
                 let name = Neuigkeiten.appName, version = Versionsnummer.text(beste)
                 let hinweis = UIAlertController(
                     title: T("Update verfügbar", "Frissítés elérhető", "Update available"),
-                    message: T("\(name) \(version) ist verfügbar. Installiere sie wie beim ersten Mal (z. B. mit Sideloadly oder AltStore).",
-                               "A(z) \(name) \(version) verziója elérhető. Telepítsd ugyanúgy, mint először (pl. Sideloadly vagy AltStore segítségével).",
-                               "\(name) \(version) is available. Install it the same way as the first time (e.g. with Sideloadly or AltStore)."),
+                    message: T("\(name) \(version) ist verfügbar.\n„Aktualisieren“ öffnet SideStore: dort unter „My Apps“ bei \(name) auf „Update“ tippen.",
+                               "Elérhető a(z) \(name) \(version).\nA „Frissítés” megnyitja a SideStore-t: ott a „My Apps” alatt koppints a(z) \(name) melletti „Update” gombra.",
+                               "\(name) \(version) is available.\n“Update” opens SideStore: tap “Update” next to \(name) under “My Apps”."),
                     preferredStyle: .alert)
                 hinweis.addAction(UIAlertAction(title: T("Später", "Később", "Later"), style: .cancel))
-                hinweis.addAction(UIAlertAction(title: T("Zur Download-Seite", "Letöltési oldal", "Open download page"), style: .default) { _ in
-                    UIApplication.shared.open(seite)
+                hinweis.addAction(UIAlertAction(title: T("Aktualisieren", "Frissítés", "Update"), style: .default) { _ in
+                    oeffne(["sidestore://", "altstore://"], sonst: seite)
                 })
                 gastgeber.present(hinweis, animated: true)
             }
         }.resume()
+    }
+
+    /// Erste App öffnen, die sich meldet (SideStore, AltStore) – sonst die Download-Seite
+    private static func oeffne(_ adressen: [String], sonst seite: URL) {
+        guard let erste = adressen.first, let url = URL(string: erste) else { return UIApplication.shared.open(seite) }
+        UIApplication.shared.open(url) { geoeffnet in
+            if !geoeffnet { oeffne(Array(adressen.dropFirst()), sonst: seite) }
+        }
     }
 }
 
