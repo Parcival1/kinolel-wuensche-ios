@@ -8,6 +8,7 @@ final class WunschViewController: UIViewController, WKNavigationDelegate, WKUIDe
     private let titel = UILabel()
     private let hinweis = UILabel()
     private var wartenderLink: URL?
+    private var startFertig = false   // erste Seite geladen oder ausgefallen → „Was ist neu“, Update-Hinweis
 
     private var server: URL {
         get {
@@ -164,10 +165,34 @@ final class WunschViewController: UIViewController, WKNavigationDelegate, WKUIDe
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         let ns = error as NSError
         if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return }
-        hinweis.text = Marke.ungarisch
-            ? "A kívánságoldal most nem érhető el.\nKérjük, ellenőrizd az internetkapcsolatot, majd koppints a ↻ gombra."
-            : "Die Wunschseite ist gerade nicht erreichbar.\nBitte Internetverbindung prüfen und oben ↻ tippen."
+        hinweis.text = T("Die Wunschseite ist gerade nicht erreichbar.\nBitte Internetverbindung prüfen und oben ↻ tippen.",
+                         "A kívánságoldal most nem érhető el.\nKérjük, ellenőrizd az internetkapcsolatot, majd koppints a ↻ gombra.",
+                         "The wish page cannot be reached right now.\nPlease check your internet connection and tap ↻ at the top.")
         hinweis.isHidden = false
+        startAbgeschlossen()
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        startAbgeschlossen()
+    }
+
+    // MARK: Nach dem Start: „Was ist neu“, dann Update-Hinweis
+
+    private func startAbgeschlossen() {
+        guard !startFertig else { return }
+        startFertig = true
+        meldungenZeigen()
+    }
+
+    private func meldungenZeigen() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            guard let self else { return }
+            guard self.presentedViewController == nil else { return self.meldungenZeigen() }
+            Neuigkeiten.zeigen(auf: self) { [weak self] in
+                guard let self else { return }
+                Aktualisierung.pruefen(auf: self)
+            }
+        }
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
