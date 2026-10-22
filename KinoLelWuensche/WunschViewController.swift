@@ -86,6 +86,9 @@ final class WunschViewController: UIViewController, WKNavigationDelegate, WKUIDe
         ])
 
         leisteAktualisieren()
+        // Lel 22.10.2026: bei jedem Zurückkehren in die App nach Updates suchen
+        NotificationCenter.default.addObserver(self, selector: #selector(imVordergrund), name: UIScene.willEnterForegroundNotification,
+                                               object: nil)
         if let link = wartenderLink {
             wartenderLink = nil
             web.load(URLRequest(url: link))
@@ -174,6 +177,14 @@ final class WunschViewController: UIViewController, WKNavigationDelegate, WKUIDe
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         startAbgeschlossen()
+    }
+
+    @objc private func imVordergrund() {
+        guard startFertig else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self else { return }
+            Aktualisierung.pruefen(auf: self)
+        }
     }
 
     // MARK: Nach dem Start: „Was ist neu“, dann Update-Hinweis
