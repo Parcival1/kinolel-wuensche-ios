@@ -28,7 +28,7 @@ final class WunschViewController: UIViewController, WKNavigationDelegate, WKUIDe
         let logo = UIImageView(image: UIImage(named: "StartLogo"))
         logo.contentMode = .scaleAspectFit
         titel.textColor = UIColor(white: 1, alpha: 0.9)
-        titel.font = .systemFont(ofSize: 16, weight: .semibold)
+        titel.font = Schrift.fett(16)
         titel.adjustsFontSizeToFitWidth = true
         titel.minimumScaleFactor = 0.7
         umschalter.selectedSegmentTintColor = Marke.lavendel

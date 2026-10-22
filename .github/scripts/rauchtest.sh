@@ -20,9 +20,9 @@ sleep 25; xcrun simctl io "$GERAET" screenshot rauchtest/01-start-25s.png
 # Link-Ersatz: kinolelwuensche://kivansagok.kinolel.de/ -> App wechselt auf Magyar
 xcrun simctl openurl "$GERAET" "kinolelwuensche://kivansagok.kinolel.de/"
 sleep 20; xcrun simctl io "$GERAET" screenshot rauchtest/02-link-ungarisch.png
-# Was ist neu (Debug-Startargument: Update von 0.1.1)
+# Was ist neu (Debug-Startargument: Update von 0.1.2)
 xcrun simctl terminate "$GERAET" de.kinolel.wuensche
-xcrun simctl launch "$GERAET" de.kinolel.wuensche -KinoLelTestNeuigkeitenSeit 0.1.1
+xcrun simctl launch "$GERAET" de.kinolel.wuensche -KinoLelTestNeuigkeitenSeit 0.1.2
 sleep 20; xcrun simctl io "$GERAET" screenshot rauchtest/03-neuigkeiten.png
 xcrun simctl terminate "$GERAET" de.kinolel.wuensche
 xcrun simctl launch "$GERAET" de.kinolel.wuensche
