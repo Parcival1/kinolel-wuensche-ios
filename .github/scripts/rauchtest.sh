@@ -22,8 +22,9 @@ xcrun simctl openurl "$GERAET" "kinolelwuensche://kivansagok.kinolel.de/"
 sleep 20; xcrun simctl io "$GERAET" screenshot rauchtest/02-link-ungarisch.png
 # Was ist neu (Debug-Startargument: Update von 0.1.3)
 xcrun simctl terminate "$GERAET" de.kinolel.wuensche
-# Lel 25.10.: Gerät auf Deutsch, Wunschseite auf Magyar (Link-Schritt davor) -> „Was ist neu“ ungarisch
-xcrun simctl launch "$GERAET" de.kinolel.wuensche -AppleLanguages "(de)" -KinoLelTestNeuigkeitenSeit 0.1.3
+# Lel 25.10.: Gerät auf Deutsch, Wunschseite auf Magyar -> „Was ist neu“ ungarisch. Server als Startargument (wie der
+# gemerkte Umschalter „Magyar“) – der Link oben bleibt im Simulator an der Rückfrage „Open in …?“ hängen.
+xcrun simctl launch "$GERAET" de.kinolel.wuensche -AppleLanguages "(de)" -server "https://kivansagok.kinolel.de" -KinoLelTestNeuigkeitenSeit 0.1.3
 sleep 20; xcrun simctl io "$GERAET" screenshot rauchtest/03-neuigkeiten.png
 xcrun simctl terminate "$GERAET" de.kinolel.wuensche
 xcrun simctl launch "$GERAET" de.kinolel.wuensche
