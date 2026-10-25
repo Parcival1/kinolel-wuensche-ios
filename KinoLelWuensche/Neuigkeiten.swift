@@ -2,16 +2,65 @@
 // und Hinweis auf neue Versionen – wie in der KinoLel-App und der Android-App. Texte: neuigkeiten.json.
 // Neuinstallation: keine Meldung. Erstes Update auf eine Version mit dieser Meldung: die zwei neuesten Einträge.
 import UIKit
+import WebKit
 
 enum Sprache: String {
     case de, hu, en
 
     /// Erste passende Gerätesprache – sonst Deutsch
-    static var aktuell: Sprache {
+    static var geraet: Sprache {
         for kennung in Locale.preferredLanguages {
             if let sprache = Sprache(rawValue: String(kennung.prefix(2)).lowercased()) { return sprache }
         }
         return .de
+    }
+
+    /// Lel 25.10. („Sind Updatenachrichten auch auf Ungarisch … wenn die ausgewählte Sprache auf Ungarisch ist?“):
+    /// Texte der App in der Sprache der Wunschseite – die im Seerr-Konto gewählte Anzeigesprache, sonst die des Servers
+    /// (KinoLel Wünsche: Deutsch, KinoLel Kívánságok: Ungarisch). Je Server gemerkt; noch unbekannt: Gerätesprache.
+    static var aktuell: Sprache {
+        UserDefaults.standard.string(forKey: schluessel(gewaehlterServer)).flatMap(Sprache.init(rawValue:)) ?? geraet
+    }
+
+    /// Server laut Umschalter (gemerkt im WunschViewController), sonst nach Gerätesprache
+    private static var gewaehlterServer: String {
+        UserDefaults.standard.string(forKey: "server").flatMap { URL(string: $0)?.host }
+            ?? (geraet == .hu ? Marke.serverHU : Marke.serverDE).host ?? ""
+    }
+
+    private static func schluessel(_ host: String) -> String { "kinolel.sprache.\(host)" }
+
+    /// Sprache der Seite lesen (im WKWebView, gleiche Herkunft, mit der Anmeldung der Seite) und für ihren Server merken
+    static func lesen(aus web: WKWebView, fertig: @escaping () -> Void) {
+        guard let host = web.url?.host, [Marke.serverDE.host, Marke.serverHU.host].contains(host) else { return fertig() }
+        // Abgemeldet (Anmeldeseite): /auth/me nicht anfragen, nur die Standardsprache des Servers
+        let js = """
+        let l = '';
+        try { l = (await (await fetch('/api/v1/settings/public')).json()).locale || ''; } catch (e) {}
+        if (!location.pathname.startsWith('/login')) {
+          try {
+            const r = await fetch('/api/v1/auth/me');
+            if (r.ok) {
+              const u = await r.json();
+              let eigene = u.settings ? u.settings.locale : undefined;
+              if (eigene === undefined) {
+                const m = await fetch('/api/v1/user/' + u.id + '/settings/main');
+                if (m.ok) eigene = (await m.json()).locale;
+              }
+              if (eigene) l = eigene;
+            }
+          } catch (e) {}
+        }
+        return l;
+        """
+        web.callAsyncJavaScript(js, arguments: [:], in: nil, in: .page) { ergebnis in
+            if case .success(let wert) = ergebnis, let text = wert as? String,
+               let sprache = Sprache(rawValue: String(text.prefix(2)).lowercased()) {
+                UserDefaults.standard.set(sprache.rawValue, forKey: schluessel(host))
+                NSLog("KinoLel Wünsche: Sprache der Wunschseite %@ (%@)", sprache.rawValue, host)
+            }
+            fertig()
+        }
     }
 }
 
@@ -45,7 +94,7 @@ enum Versionsnummer {
 }
 
 enum Neuigkeiten {
-    struct Eintrag { let version: String; let punkte: [String] }
+    struct Eintrag { let version: String; let texte: [String: Any] }
 
     private static let gesehenSchluessel = "kinolel.neuigkeitenGesehen"
     private static let ohneVorgaenger = 2
@@ -72,7 +121,6 @@ enum Neuigkeiten {
               let daten = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: daten) as? [String: Any],
               let versionen = json["versionen"] as? [[String: Any]] else { return }
-        let sprache = Sprache.aktuell.rawValue
         let gesehen = gesehenText.map(Versionsnummer.teile)
         var liste: [(teile: [Int], eintrag: Eintrag)] = []
         for v in versionen {
@@ -80,12 +128,16 @@ enum Neuigkeiten {
             let teile = Versionsnummer.teile(text)
             guard Versionsnummer.vergleiche(teile, aktuell) <= 0 else { continue }
             if let gesehen, Versionsnummer.vergleiche(teile, gesehen) <= 0 { continue }
-            let punkte = (v[sprache] as? [String]) ?? (v["de"] as? [String]) ?? []
-            if !punkte.isEmpty { liste.append((teile, Eintrag(version: text, punkte: punkte))) }
+            liste.append((teile, Eintrag(version: text, texte: v)))
         }
         liste.sort { Versionsnummer.vergleiche($0.teile, $1.teile) > 0 }
         offen = (gesehen == nil ? Array(liste.prefix(ohneVorgaenger)) : liste).map(\.eintrag)
         NSLog("KinoLel Wünsche: Was ist neu – %ld Einträge", offen.count)
+    }
+
+    /// Stichpunkte in der aktuellen Sprache (Ersatz: Deutsch) – erst beim Zeigen, wenn die Sprache der Seite bekannt ist
+    private static func punkte(_ eintrag: Eintrag) -> [String] {
+        (eintrag.texte[Sprache.aktuell.rawValue] as? [String]) ?? (eintrag.texte["de"] as? [String]) ?? []
     }
 
     /// Gab es die App schon vorher? Ältere Versionen haben nichts gespeichert, aber die Wunschseite lief schon
@@ -100,8 +152,10 @@ enum Neuigkeiten {
     static func zeigen(auf gastgeber: UIViewController, fertig: @escaping () -> Void) {
         guard !offen.isEmpty else { return fertig() }
         let name = appName, version = Marke.version
+        let titel = T("Neu in \(name) \(version)", "Újdonságok – \(name) \(version)", "New in \(name) \(version)")
+        NSLog("KinoLel Wünsche: Was ist neu gezeigt – Sprache %@, Titel %@", Sprache.aktuell.rawValue, titel)
         let dialog = KinoLelDialog(
-            titel: T("Neu in \(name) \(version)", "Újdonságok – \(name) \(version)", "New in \(name) \(version)"),
+            titel: titel,
             attributiert: inhalt(offen),
             knoepfe: [KinoLelDialog.Knopf(titel: T("Alles klar", "Rendben", "Got it"), art: .haupt, kennung: "kinolel.neuigkeiten.ok")],
             titelKennung: "kinolel.neuigkeiten.titel")
@@ -128,7 +182,7 @@ enum Neuigkeiten {
                     .font: Schrift.fett(16), .foregroundColor: UIColor.white, .paragraphStyle: kopf
                 ]))
             }
-            for p in eintrag.punkte {
+            for p in punkte(eintrag) {
                 ergebnis.append(NSAttributedString(string: "•\t" + p + "\n", attributes: [
                     .font: Schrift.normal(16), .foregroundColor: UIColor(white: 0.88, alpha: 1), .paragraphStyle: punkt
                 ]))

@@ -22,12 +22,18 @@ xcrun simctl openurl "$GERAET" "kinolelwuensche://kivansagok.kinolel.de/"
 sleep 20; xcrun simctl io "$GERAET" screenshot rauchtest/02-link-ungarisch.png
 # Was ist neu (Debug-Startargument: Update von 0.1.3)
 xcrun simctl terminate "$GERAET" de.kinolel.wuensche
-xcrun simctl launch "$GERAET" de.kinolel.wuensche -KinoLelTestNeuigkeitenSeit 0.1.3
+# Lel 25.10.: Gerät auf Deutsch, Wunschseite auf Magyar (Link-Schritt davor) -> „Was ist neu“ ungarisch
+xcrun simctl launch "$GERAET" de.kinolel.wuensche -AppleLanguages "(de)" -KinoLelTestNeuigkeitenSeit 0.1.3
 sleep 20; xcrun simctl io "$GERAET" screenshot rauchtest/03-neuigkeiten.png
 xcrun simctl terminate "$GERAET" de.kinolel.wuensche
 xcrun simctl launch "$GERAET" de.kinolel.wuensche
 sleep 15; xcrun simctl io "$GERAET" screenshot rauchtest/04-zweiter-start-ohne-meldung.png
 xcrun simctl spawn "$GERAET" log show --last 15m --style compact --predicate 'process == "KinoLelWuensche"' \
-  | grep -E "Was ist neu" > rauchtest/neuigkeiten.txt || true
+  | grep -E "Was ist neu|Sprache der Wunschseite" > rauchtest/neuigkeiten.txt || true
 cat rauchtest/neuigkeiten.txt
+if grep -q "Was ist neu gezeigt – Sprache hu, Titel Újdonságok" rauchtest/neuigkeiten.txt; then
+  echo "SPRACHE: Was ist neu ungarisch (Gerät Deutsch, Wunschseite Magyar)" | tee rauchtest/sprache.txt
+else
+  echo "SPRACHE: Was ist neu NICHT ungarisch" | tee rauchtest/sprache.txt
+fi
 exit 0

@@ -46,5 +46,5 @@ enum Marke {
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
     static let lavendel = UIColor(red: 0x9A / 255.0, green: 0xA4 / 255.0, blue: 0xFF / 255.0, alpha: 1)
     static let grund = UIColor(red: 0x0B / 255.0, green: 0x0F / 255.0, blue: 0x18 / 255.0, alpha: 1)
-    static var ungarisch: Bool { Sprache.aktuell == .hu }
+    static var ungarisch: Bool { Sprache.geraet == .hu }
 }

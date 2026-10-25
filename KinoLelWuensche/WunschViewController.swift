@@ -176,7 +176,15 @@ final class WunschViewController: UIViewController, WKNavigationDelegate, WKUIDe
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        startAbgeschlossen()
+        // erst die Sprache der Seite (Lel 25.10.: Meldungen ungarisch, wenn die Wunschseite ungarisch ist), höchstens 6 s
+        var weiter = false
+        let einmal = { [weak self] in
+            guard !weiter else { return }
+            weiter = true
+            self?.startAbgeschlossen()
+        }
+        Sprache.lesen(aus: webView) { DispatchQueue.main.async(execute: einmal) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6, execute: einmal)
     }
 
     @objc private func imVordergrund() {
